@@ -7,6 +7,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "doctores")
 public class Doctor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,4 +16,8 @@ public class Doctor {
     private String nombre;
     private String especialidad;
     private String email;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

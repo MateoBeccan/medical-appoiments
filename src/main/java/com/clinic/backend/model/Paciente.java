@@ -18,6 +18,6 @@ public class Paciente {
     private String telefono;
 
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id")
     private User user;
 }

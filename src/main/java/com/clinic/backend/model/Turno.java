@@ -10,20 +10,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "turnos")
 public class Turno {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doctor_id")
+    @ManyToOne
     private Doctor doctor;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "paciente_id")
+    @ManyToOne
     private Paciente paciente;
 
     private LocalDateTime fechaHora;
-
     private String estado; // reservado, cancelado, completado
 }

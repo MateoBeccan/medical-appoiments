@@ -1,12 +1,9 @@
 package com.clinic.backend.controller;
 
-import com.clinic.backend.model.Role;
-import com.clinic.backend.model.User;
-import com.clinic.backend.repository.UserRepository;
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.clinic.backend.model.*;
+import com.clinic.backend.repository.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -15,42 +12,39 @@ import java.util.List;
 public class UserController {
 
     private final UserRepository userRepo;
+    private final PacienteRepository pacienteRepo;
+    private final DoctorRepository doctorRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public UserController(UserRepository userRepo, PasswordEncoder passwordEncoder) {
+    public UserController(UserRepository userRepo, PacienteRepository pacienteRepo,
+                          DoctorRepository doctorRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
+        this.pacienteRepo = pacienteRepo;
+        this.doctorRepo = doctorRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public List<User> getAllUsers() {
+    public List<User> listarUsuarios() {
         return userRepo.findAll();
     }
 
-    @PostMapping
-    @PreAuthorize("hasRole('ADMIN')") // Solo admin puede crear usuarios
-    public User createUser(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // encriptar contraseña
-        if(user.getRole() == null) {
-            user.setRole(Role.PACIENTE); // default
-        }
-        return userRepo.save(user);
-    }
+    @PostMapping("/register")
+    public User crearUsuario(@RequestBody User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User saved = userRepo.save(user);
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
-        user.setId(id);
-        if(user.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getRole() == Role.PACIENTE) {
+            Paciente p = new Paciente();
+            p.setUser(saved);
+            p.setNombre(saved.getUsername());
+            pacienteRepo.save(p);
+        } else if (user.getRole() == Role.DOCTOR) {
+            Doctor d = new Doctor();
+            d.setUser(saved);
+            d.setNombre(saved.getUsername());
+            doctorRepo.save(d);
         }
-        return userRepo.save(user);
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(@PathVariable Long id) {
-        userRepo.deleteById(id);
+        return saved;
     }
 }
