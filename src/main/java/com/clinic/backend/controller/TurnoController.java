@@ -4,8 +4,9 @@ import com.clinic.backend.model.Turno;
 import com.clinic.backend.service.TurnoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/turnos")
@@ -19,19 +20,28 @@ public class TurnoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('DOCTOR') or hasRole('PACIENTE')")
-    public List<Turno> listarTurnos() {
-        return turnoService.listarTurnos();
+    @PreAuthorize("hasAnyRole('ADMIN','DOCTOR','PACIENTE')")
+    public List<TurnoResponseDTO> listarTurnos(
+            @RequestParam(required = false) Long doctorId,
+            @RequestParam(required = false) Long pacienteId,
+            @RequestParam(required = false) String fecha // yyyy-MM-dd
+    ) {
+        // delega a servicio la lógica de filtros
+        return turnoService.listarTurnosConFiltros(doctorId, pacienteId, fecha)
+                .stream()
+                .map(TurnoResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PACIENTE')")
-    public Turno crearTurno(@RequestBody Turno turno) {
-        return turnoService.crearTurno(turno);
+    @PreAuthorize("hasAnyRole('ADMIN','PACIENTE')")
+    public TurnoResponseDTO crearTurno(@RequestBody Turno turno) {
+        Turno creado = turnoService.crearTurno(turno);
+        return TurnoResponseDTO.fromEntity(creado);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('PACIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN','PACIENTE')")
     public void eliminarTurno(@PathVariable Long id) {
         turnoService.eliminarTurno(id);
     }

@@ -7,6 +7,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "pacientes")
 public class Paciente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,4 +16,8 @@ public class Paciente {
     private String nombre;
     private String email;
     private String telefono;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }
